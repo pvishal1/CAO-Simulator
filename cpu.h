@@ -27,7 +27,7 @@ typedef struct APEX_Instruction
     int rs1;		    // Source-1 Register Address
     int rs2;		    // Source-2 Register Address
     int imm;		    // Literal Value
-    int mulFlag;      //flag to see if MUL instruction was in execution or not
+    //int mulFlag;      //flag to see if MUL instruction was in execution or not
 } APEX_Instruction;
 
 /* Model of CPU stage latch */
@@ -46,7 +46,7 @@ typedef struct CPU_Stage
     int busy;		    // Flag to indicate, stage is performing some action
     int stalled;		// Flag to indicate, stage is stalled
     
-    int mulFlag;      //flag to see if MUL instruction was in execution or not
+    //int mulFlag;      //flag to see if MUL instruction was in execution or not
 } CPU_Stage;
 
 /* Model of APEX CPU */
@@ -74,6 +74,9 @@ typedef struct APEX_CPU
     
     /* Some stats */
     int ins_completed;
+    
+    int bzFlag;
+    int bnzFlag;
     
 } APEX_CPU;
 

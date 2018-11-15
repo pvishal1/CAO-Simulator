@@ -16,6 +16,8 @@
 #define ENABLE_DEBUG_MESSAGES 1
 //CPU_Stage* stageE;
 int stallFlag = 0;
+int bzF = 0;
+int bnzF = 0;
 
 /*
  * This function creates and initializes APEX cpu.
@@ -66,7 +68,8 @@ APEX_cpu_init(const char* filename)
                    cpu->code_memory[i].imm);
         }
     }
-    
+    cpu->bzFlag = 1;
+    cpu->bnzFlag = 0;
     /* Make all stages busy except Fetch stage, initally to start the pipeline */
     for (int i = 1; i < NUM_STAGES; ++i) {
         cpu->stage[i].busy = 1;
@@ -176,11 +179,11 @@ fetch(APEX_CPU* cpu)
     //        stage->stalled = 0;
     //    }
     //
-//    if(cpu->stage[DRF].stalled == 1) {
-//        stage->stalled = 1;
-//    } else {
-//        stage->stalled = 0;
-//    }
+    //    if(cpu->stage[DRF].stalled == 1) {
+    //        stage->stalled = 1;
+    //    } else {
+    //        stage->stalled = 0;
+    //    }
     if (!stage->busy && !stage->stalled) {
         /* Store current PC in fetch latch */
         stage->pc = cpu->pc;
@@ -197,25 +200,25 @@ fetch(APEX_CPU* cpu)
         //stage->rd = current_ins->rd;
         
         /* To check if destination register is valid or not 0:valid, 1: not valid*/
-//        if (cpu->regs_valid[stage->rd] == 1) {
-//            cpu->regs_valid[stage->rd]++;
-//        } else if (stage->rd == stage->rs1 || stage->rd==stage->rs2) {
-//            cpu->regs_valid[stage->rd] = cpu->regs_valid[stage->rd];
-//        }
-//
-//        else {
-//            cpu->regs_valid[stage->rd] = 1;
-//        }
+        //        if (cpu->regs_valid[stage->rd] == 1) {
+        //            cpu->regs_valid[stage->rd]++;
+        //        } else if (stage->rd == stage->rs1 || stage->rd==stage->rs2) {
+        //            cpu->regs_valid[stage->rd] = cpu->regs_valid[stage->rd];
+        //        }
+        //
+        //        else {
+        //            cpu->regs_valid[stage->rd] = 1;
+        //        }
         
-        if(cpu->stage[DRF].stalled == 1) {
-//            printf("\nInside fetch stall cond: %s", stage->opcode);
+        if (cpu->stage[DRF].stalled == 1) {
+            //            printf("\nInside fetch stall cond: %s", stage->opcode);
             //stage->stalled = 1;
             if (ENABLE_DEBUG_MESSAGES) {
                 print_stage_content("Fetch", stage);
             }
             return 0;
-//        } else {
-//            stage->stalled = 0;
+            //        } else {
+            //            stage->stalled = 0;
         }
         
         /* Update PC for next instruction */
@@ -227,8 +230,8 @@ fetch(APEX_CPU* cpu)
         if (ENABLE_DEBUG_MESSAGES) {
             print_stage_content("Fetch", stage);
         }
-//    } else if (stage->stalled == 1) {
-//        print_stage_content("Fetch", stage);
+        //    } else if (stage->stalled == 1) {
+        //        print_stage_content("Fetch", stage);
     } else {
         print_empty_stage_fetch("Fetch", cpu->pc);
     }
@@ -245,6 +248,7 @@ int
 decode(APEX_CPU* cpu)
 {
     CPU_Stage* stage = &cpu->stage[DRF];
+    //printf("drf value: %s", stage->opcode);
     //    if(stallFlag) {
     //        stage->stalled = 1;
     //        if (ENABLE_DEBUG_MESSAGES) {
@@ -253,16 +257,17 @@ decode(APEX_CPU* cpu)
     //    } else {
     //        stage->stalled = 0;
     //    }
+    //if (strcmp(stage->opcode, "") != 0) {
     int validFlag = 0;
     if (cpu->stage[EX].busy && (strcmp(cpu->stage[EX].opcode, "MUL") == 0)) {
         stage->stalled = 1;
     } else if (!cpu->stage[EX].busy && (strcmp(cpu->stage[EX].opcode, "MUL") == 0)) {
-//        printf("!cpu->stage[EX].busy && (strcmp(cpu->stage[EX].opcode, MUL) == 0");
+        //        printf("!cpu->stage[EX].busy && (strcmp(cpu->stage[EX].opcode, MUL) == 0");
         stage->stalled = 0;
     }
     if (stallFlag) {
         stage->stalled = 0;
-//        printf("\nupdated stage->stalled = 0");
+        //        printf("\nupdated stage->stalled = 0");
     }
     if (!stage->busy && !stage->stalled) {
         
@@ -302,14 +307,14 @@ decode(APEX_CPU* cpu)
         if(validFlag) {
             stage->stalled = 1;
             stallFlag = 1;
-//            printf("\nupdated stallFlag = 1");
-//            if (ENABLE_DEBUG_MESSAGES) {
-//                print_stage_content("Decode/RF", stage);
-//            }
-//            return 0;
+            //            printf("\nupdated stallFlag = 1");
+            //            if (ENABLE_DEBUG_MESSAGES) {
+            //                print_stage_content("Decode/RF", stage);
+            //            }
+            //            return 0;
         } else {
             stallFlag = 0;
-//            printf("\nupdated stallFlag = 0");
+            //            printf("\nupdated stallFlag = 0");
         }
         
         /* Copy data from decode latch to execute latch*/
@@ -317,13 +322,15 @@ decode(APEX_CPU* cpu)
         cpu->stage[EX] = cpu->stage[DRF];
         //        }
         
-        
-        if (cpu->regs_valid[stage->rd] == 1) {
-            cpu->regs_valid[stage->rd]++;
-//        } else if (stage->rd == stage->rs1 || stage->rd==stage->rs2) {
-//            cpu->regs_valid[stage->rd] = cpu->regs_valid[stage->rd];
-        } else {
-            cpu->regs_valid[stage->rd] = 1;
+//        printf("\nDecode: cpu->regs_valid[stage->rd]: %d\n",stage->rd);
+        if (stage->rd <= 15) {
+            if (cpu->regs_valid[stage->rd] == 1) {
+                cpu->regs_valid[stage->rd]++;
+                //        } else if (stage->rd == stage->rs1 || stage->rd==stage->rs2) {
+                //            cpu->regs_valid[stage->rd] = cpu->regs_valid[stage->rd];
+            } else {
+                cpu->regs_valid[stage->rd] = 1;
+            }
         }
         
         
@@ -335,6 +342,7 @@ decode(APEX_CPU* cpu)
     } else {
         print_empty_stage_content("Decode/RF");
     }
+//}
     return 0;
 }
 
@@ -360,7 +368,7 @@ execute(APEX_CPU* cpu)
     //        return 0;
     //    }
     if ((strcmp(stage->opcode, "MUL") == 0) && stage->busy == 0 && stage->stalled == 0) {
-//        printf("\nhello\n");
+        //        printf("\nhello\n");
         stage->busy = 1;
         cpu->stage[MEM] = cpu->stage[EX];
         if (ENABLE_DEBUG_MESSAGES) {
@@ -368,7 +376,7 @@ execute(APEX_CPU* cpu)
         }
         return 0;
     } else if ((strcmp(stage->opcode, "MUL") == 0) && stage->busy == 1) {
-//        printf("\nworld\n");
+        //        printf("\nworld\n");
         stage->busy = 0;
     }
     
@@ -511,7 +519,7 @@ writeback(APEX_CPU* cpu)
     //        print_empty_stage_content("Writeback");
     //        return 0;
     //    }
-//    printf("\nwriteback1 %d: %d\n",stage->busy, stage->stalled);
+    //    printf("\nwriteback1 %d: %d\n",stage->busy, stage->stalled);
     if (!stage->busy && !stage->stalled) {
         //        printf("\nwriteback2\n");
         
@@ -543,14 +551,14 @@ writeback(APEX_CPU* cpu)
         
         if (cpu->regs_valid[stage->rd] == 1) {
             cpu->regs_valid[stage->rd] = 0;
-//        } else if (stage->rd == stage->rs1 || stage->rd==stage->rs2) {
-//            cpu->regs_valid[stage->rd] = cpu->regs_valid[stage->rd];
+            //        } else if (stage->rd == stage->rs1 || stage->rd==stage->rs2) {
+            //            cpu->regs_valid[stage->rd] = cpu->regs_valid[stage->rd];
         } else {
             cpu->regs_valid[stage->rd]--;
         }
-//        printf("\n updated cpu->regs_valid[%d]: %d", stage->rd, cpu->regs_valid[stage->rd]);
+        //        printf("\n updated cpu->regs_valid[%d]: %d", stage->rd, cpu->regs_valid[stage->rd]);
         cpu->ins_completed++;
-//        printf("\nins_complete: %d\n", cpu->ins_completed);
+        //        printf("\nins_complete: %d\n", cpu->ins_completed);
         
         if (ENABLE_DEBUG_MESSAGES) {
             print_stage_content("Writeback", stage);\
