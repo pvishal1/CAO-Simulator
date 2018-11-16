@@ -67,7 +67,7 @@ create_APEX_instruction(APEX_Instruction* ins, char* buffer)
         ins->imm = get_num_from_string(tokens[3]);
     }
     
-    if (strcmp(ins->opcode, "ADD") == 0) {
+    if ((strcmp(ins->opcode, "ADD") == 0) || (strcmp(ins->opcode, "AND") == 0) || (strcmp(ins->opcode, "OR") == 0) || (strcmp(ins->opcode, "XOR") == 0)) {
         ins->rd = get_num_from_string(tokens[1]);
         ins->rs1 = get_num_from_string(tokens[2]);
         ins->rs2 = get_num_from_string(tokens[3]);
@@ -86,9 +86,18 @@ create_APEX_instruction(APEX_Instruction* ins, char* buffer)
         //ins->mulFlag = 0;
     }
     
-    if (strcmp(ins->opcode, "BZ") == 0) {
+    if ((strcmp(ins->opcode, "BZ") == 0) || (strcmp(ins->opcode, "BNZ") == 0)) {
         ins->imm = get_num_from_string(tokens[1]);
         //ins->mulFlag = 0;
+    }
+    
+    if (strcmp(ins->opcode, "JUMP") == 0) {
+        ins->rs1 = get_num_from_string(tokens[1]);
+        ins->imm = get_num_from_string(tokens[2]);
+        //ins->mulFlag = 0;
+    }
+    
+    if (strcmp(ins->opcode, "JUMP") == 0) {
     }
     
 }
